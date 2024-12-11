@@ -77,8 +77,9 @@ def create_interface():
         download_button = gr.Button("導出 CSV")
 
         # Output for displaying results
-        output = gr.HTML(label="查詢結果")
         csv_data = gr.State()  # Temporary state to store DataFrame
+        output = gr.HTML(label="查詢結果")
+ 
 
         # Handle fetch and display
         def handle_query(date, category, type_, unit_name, unit_id, job_number, name):
