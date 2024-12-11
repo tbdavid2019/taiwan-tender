@@ -1,6 +1,7 @@
 import gradio as gr
 import requests
 import datetime
+import pandas as pd
 
 # Function to fetch data from the API
 def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
@@ -19,15 +20,15 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
 
         # Filter data based on inputs
         filtered_data = [
-            [
-                item.get("name", "N/A"),
-                item.get("unit", "N/A"),
-                item.get("category", "N/A"),
-                item.get("type", "N/A"),
-                item.get("price", "N/A"),
-                date,  # Add the queried date as a column
-                item.get("url", "N/A")
-            ]
+            {
+                "標案名稱": f'<a href="{item.get("url", "#")}" target="_blank">{item.get("name", "N/A")}</a>',
+                "機關名稱": item.get("unit", "N/A"),
+                "類別": item.get("category", "N/A"),
+                "招標方式": item.get("type", "N/A"),
+                "價格": item.get("price", "N/A"),
+                "日期": date,
+                "連結": item.get("url", "N/A")
+            }
             for item in data
             if (
                 (category == "不限" or item.get("category") == category) and
@@ -38,12 +39,12 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
                 (not name or name in item.get("name", ""))
             )
         ]
-        return filtered_data if filtered_data else [["查無資料"]]
+        return pd.DataFrame(filtered_data) if filtered_data else pd.DataFrame([{"查無資料": ""}])
 
     except ValueError:
-        return [["日期格式錯誤，請使用 YYYY-MM-DD 格式"]]
+        return pd.DataFrame([{"Error": "日期格式錯誤，請使用 YYYY-MM-DD 格式"}])
     except requests.exceptions.RequestException as e:
-        return [[f"無法取得資料: {str(e)}"]]
+        return pd.DataFrame([{"Error": f"無法取得資料: {str(e)}"}])
 
 
 # Gradio Interface
@@ -52,7 +53,7 @@ def create_interface():
         gr.Markdown("## 政府招標查詢工具\n通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。")
         
         with gr.Row():
-            date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天，例如 2024-12-11")
+            date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="可不填, 預設為今天")
             category_dropdown = gr.Dropdown(
                 choices=["不限", "工程類", "財物類", "勞務類"],
                 label="採購性質",
@@ -75,17 +76,28 @@ def create_interface():
         submit_button = gr.Button("查詢")
 
         # Output for displaying results
-        output = gr.Dataframe(
-            headers=["標案名稱", "機關名稱", "類別", "招標方式", "價格", "日期", "連結"],
-            label="查詢結果"
-        )
-        
+        output = gr.HTML(label="查詢結果")
+        download_button = gr.Button("導出 CSV")
+
+        # Handle fetch and display
+        def handle_query(date, category, type_, unit_name, unit_id, job_number, name):
+            df = fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name)
+            return df.to_html(escape=False, index=False), df
+
+        # Handle CSV export
+        def export_csv(df):
+            file_path = "/tmp/tender_results.csv"
+            df.to_csv(file_path, index=False)
+            return file_path
+
+        # Button actions
         submit_button.click(
-            fetch_tenders,
+            handle_query,
             inputs=[date_input, category_dropdown, type_dropdown,
                     unit_name_input, unit_id_input, job_number_input, name_input],
-            outputs=output
+            outputs=[output, gr.Variable()]
         )
+        download_button.click(export_csv, inputs=[gr.Variable()], outputs=gr.File())
 
     demo.launch()
 
