@@ -25,6 +25,7 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
                 item.get("category", "N/A"),
                 item.get("type", "N/A"),
                 item.get("price", "N/A"),
+                date,  # Add the queried date as a column
                 item.get("url", "N/A")
             ]
             for item in data
@@ -70,7 +71,7 @@ def create_interface():
 
     # Output for displaying results
     output = gr.Dataframe(
-        headers=["標案名稱", "機關名稱", "類別", "招標方式", "價格", "連結"],
+        headers=["標案名稱", "機關名稱", "類別", "招標方式", "價格", "日期", "連結"],
         label="查詢結果"
     )
 
@@ -82,6 +83,7 @@ def create_interface():
         inputs=[date_input, category_dropdown, type_dropdown,
                 unit_name_input, unit_id_input, job_number_input, name_input],
         outputs=output,
+        layout="vertical",  # Results below inputs
         title="政府招標查詢工具",
         description="通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。"
     ).launch()
