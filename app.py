@@ -54,16 +54,13 @@ def create_interface():
         with gr.Row():
             date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天，例如 2024-12-11")
             category_dropdown = gr.Dropdown(
-                choices=["不限", "工程", "財物", "勞務"],
+                choices=["不限", "工程類", "財物類", "勞務類"],
                 label="採購性質",
                 value="不限"
             )
             type_dropdown = gr.Dropdown(
                 choices=[
-                    "不限", "各式招標公告", "公開招標", "公開取得電子報價單", "公開取得報價單或企劃書",
-                    "經公開評選或公開徵求之限制性招標", "選擇性招標 (建立合格廠商名單)", 
-                    "選擇性招標 (建立合格廠商名單後續邀標)", "選擇性招標 (個案)", "電子競價", 
-                    "限制性招標 (未經公開評選或公開徵求)"
+                    "不限", "決標公告", "無法決標公告", "定期彙送"
                 ],
                 label="招標方式",
                 value="不限"
