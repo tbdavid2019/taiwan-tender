@@ -74,10 +74,11 @@ def create_interface():
             name_input = gr.Text(label="標案名稱", placeholder="輸入標案名稱")
         
         submit_button = gr.Button("查詢")
+        download_button = gr.Button("導出 CSV")
 
         # Output for displaying results
         output = gr.HTML(label="查詢結果")
-        download_button = gr.Button("導出 CSV")
+        csv_data = gr.State()  # Temporary state to store DataFrame
 
         # Handle fetch and display
         def handle_query(date, category, type_, unit_name, unit_id, job_number, name):
@@ -95,9 +96,9 @@ def create_interface():
             handle_query,
             inputs=[date_input, category_dropdown, type_dropdown,
                     unit_name_input, unit_id_input, job_number_input, name_input],
-            outputs=[output, gr.Variable()]
+            outputs=[output, csv_data]
         )
-        download_button.click(export_csv, inputs=[gr.Variable()], outputs=gr.File())
+        download_button.click(export_csv, inputs=[csv_data], outputs=gr.File())
 
     demo.launch()
 
