@@ -48,45 +48,49 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
 
 # Gradio Interface
 def create_interface():
-    date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天，例如 2024-12-11")
-    category_dropdown = gr.Dropdown(
-        choices=["不限", "工程", "財物", "勞務"],
-        label="採購性質",
-        value="不限"
-    )
-    type_dropdown = gr.Dropdown(
-        choices=[
-            "不限", "各式招標公告", "公開招標", "公開取得電子報價單", "公開取得報價單或企劃書",
-            "經公開評選或公開徵求之限制性招標", "選擇性招標 (建立合格廠商名單)", 
-            "選擇性招標 (建立合格廠商名單後續邀標)", "選擇性招標 (個案)", "電子競價", 
-            "限制性招標 (未經公開評選或公開徵求)"
-        ],
-        label="招標方式",
-        value="不限"
-    )
-    unit_name_input = gr.Text(label="機關名稱", placeholder="輸入機關名稱")
-    unit_id_input = gr.Text(label="機關代碼", placeholder="輸入機關代碼")
-    job_number_input = gr.Text(label="標案案號", placeholder="輸入標案案號")
-    name_input = gr.Text(label="標案名稱", placeholder="輸入標案名稱")
+    with gr.Blocks() as demo:
+        gr.Markdown("## 政府招標查詢工具\n通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。")
+        
+        with gr.Row():
+            date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天，例如 2024-12-11")
+            category_dropdown = gr.Dropdown(
+                choices=["不限", "工程", "財物", "勞務"],
+                label="採購性質",
+                value="不限"
+            )
+            type_dropdown = gr.Dropdown(
+                choices=[
+                    "不限", "各式招標公告", "公開招標", "公開取得電子報價單", "公開取得報價單或企劃書",
+                    "經公開評選或公開徵求之限制性招標", "選擇性招標 (建立合格廠商名單)", 
+                    "選擇性招標 (建立合格廠商名單後續邀標)", "選擇性招標 (個案)", "電子競價", 
+                    "限制性招標 (未經公開評選或公開徵求)"
+                ],
+                label="招標方式",
+                value="不限"
+            )
 
-    # Output for displaying results
-    output = gr.Dataframe(
-        headers=["標案名稱", "機關名稱", "類別", "招標方式", "價格", "日期", "連結"],
-        label="查詢結果"
-    )
+        with gr.Row():
+            unit_name_input = gr.Text(label="機關名稱", placeholder="輸入機關名稱")
+            unit_id_input = gr.Text(label="機關代碼", placeholder="輸入機關代碼")
+            job_number_input = gr.Text(label="標案案號", placeholder="輸入標案案號")
+            name_input = gr.Text(label="標案名稱", placeholder="輸入標案名稱")
+        
+        submit_button = gr.Button("查詢")
 
-    # Create Gradio interface
-    gr.Interface(
-        fn=lambda date, category, type_, unit_name, unit_id, job_number, name: fetch_tenders(
-            date, category, type_, unit_name, unit_id, job_number, name
-        ),
-        inputs=[date_input, category_dropdown, type_dropdown,
-                unit_name_input, unit_id_input, job_number_input, name_input],
-        outputs=output,
-        layout="vertical",  # Results below inputs
-        title="政府招標查詢工具",
-        description="通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。"
-    ).launch()
+        # Output for displaying results
+        output = gr.Dataframe(
+            headers=["標案名稱", "機關名稱", "類別", "招標方式", "價格", "日期", "連結"],
+            label="查詢結果"
+        )
+        
+        submit_button.click(
+            fetch_tenders,
+            inputs=[date_input, category_dropdown, type_dropdown,
+                    unit_name_input, unit_id_input, job_number_input, name_input],
+            outputs=output
+        )
+
+    demo.launch()
 
 if __name__ == "__main__":
     create_interface()
