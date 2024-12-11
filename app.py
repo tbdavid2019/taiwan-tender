@@ -50,7 +50,7 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
 # Gradio Interface
 def create_interface():
     with gr.Blocks() as demo:
-        gr.Markdown("## 政府招標查詢工具\n通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。")
+        gr.Markdown("## 政府招標查詢工具 DAVID888.com\n通過日期、採購性質、招標方式以及其他關鍵字篩選政府招標公告。")
         
         with gr.Row():
             date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="可不填, 預設為今天")
