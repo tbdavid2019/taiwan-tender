@@ -19,14 +19,14 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
 
         # Filter data based on inputs
         filtered_data = [
-            {
-                "標案名稱": item.get("name"),
-                "機關名稱": item.get("unit"),
-                "類別": item.get("category"),
-                "招標方式": item.get("type"),
-                "價格": item.get("price"),
-                "連結": item.get("url")
-            }
+            [
+                item.get("name", "N/A"),
+                item.get("unit", "N/A"),
+                item.get("category", "N/A"),
+                item.get("type", "N/A"),
+                item.get("price", "N/A"),
+                item.get("url", "N/A")
+            ]
             for item in data
             if (
                 (category == "不限" or item.get("category") == category) and
@@ -37,12 +37,12 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
                 (not name or name in item.get("name", ""))
             )
         ]
-        return filtered_data
+        return filtered_data if filtered_data else [["查無資料"]]
 
     except ValueError:
-        return [{"Error": "日期格式錯誤，請使用 YYYY-MM-DD 格式"}]
+        return [["日期格式錯誤，請使用 YYYY-MM-DD 格式"]]
     except requests.exceptions.RequestException as e:
-        return [{"Error": f"無法取得資料: {str(e)}"}]
+        return [[f"無法取得資料: {str(e)}"]]
 
 
 # Gradio Interface
