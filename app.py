@@ -1,11 +1,12 @@
 import gradio as gr
 import requests
+import datetime
 
 # Function to fetch data from the API
 def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
     base_url = "https://pcc.mlwmlw.org/api/date/award/"
     if not date:
-        date = "today"  # Use today's date by default
+        date = datetime.datetime.now().strftime("%Y-%m-%d")  # Default to today's date
     url = f"{base_url}{date}"
 
     try:
@@ -41,7 +42,7 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
 
 # Gradio Interface
 def create_interface():
-    date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天")
+    date_input = gr.Date(label="查詢日期", value=datetime.date.today())
     category_dropdown = gr.Dropdown(
         choices=["不限", "工程", "財物", "勞務"],
         label="採購性質",
