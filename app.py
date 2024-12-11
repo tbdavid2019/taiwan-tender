@@ -5,11 +5,14 @@ import datetime
 # Function to fetch data from the API
 def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
     base_url = "https://pcc.mlwmlw.org/api/date/award/"
-    if not date:
-        date = datetime.datetime.now().strftime("%Y-%m-%d")  # Default to today's date
-    url = f"{base_url}{date}"
-
     try:
+        # Validate and format the date
+        if not date:
+            date = datetime.datetime.now().strftime("%Y-%m-%d")  # Default to today's date
+        else:
+            datetime.datetime.strptime(date, "%Y-%m-%d")  # Ensure correct format
+        url = f"{base_url}{date}"
+
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -36,13 +39,15 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
         ]
         return filtered_data
 
+    except ValueError:
+        return [{"Error": "日期格式錯誤，請使用 YYYY-MM-DD 格式"}]
     except requests.exceptions.RequestException as e:
         return [{"Error": f"無法取得資料: {str(e)}"}]
 
 
 # Gradio Interface
 def create_interface():
-    date_input = gr.Date(label="查詢日期", value=datetime.date.today())
+    date_input = gr.Text(label="查詢日期 (YYYY-MM-DD)", placeholder="默認為今天，例如 2024-12-11")
     category_dropdown = gr.Dropdown(
         choices=["不限", "工程", "財物", "勞務"],
         label="採購性質",
