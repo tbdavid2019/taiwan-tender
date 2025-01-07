@@ -5,7 +5,7 @@ import pandas as pd
 
 # Function to fetch data from the API
 def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
-    base_url = "https://pcc.mlwmlw.org/api/date/award/"
+    base_url = "https://pcc.mlwmlw.org/api/date/tender/"
     try:
         # Validate and format the date
         if not date:
