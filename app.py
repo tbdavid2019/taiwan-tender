@@ -18,14 +18,13 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
         response.raise_for_status()
         data = response.json()
 
-        # Filter data based on inputs
         filtered_data = [
             {
                 "標案名稱": f'<a href="{item.get("url", "#")}" target="_blank">{item.get("name", "N/A")}</a>',
                 "機關名稱": item.get("unit", "N/A"),
                 "類別": item.get("category", "N/A"),
                 "招標方式": item.get("type", "N/A"),
-                "價格": item.get("price", "N/A"),
+                "價格": f'{int(item.get("price", 0)):,}' if item.get("price") else "N/A",  # 格式化價格
                 "日期": date,
                 "連結": item.get("url", "N/A")
             }
