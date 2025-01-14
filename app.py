@@ -3,6 +3,14 @@ import requests
 import datetime
 import pandas as pd
 
+def format_price(price):
+    try:
+        if isinstance(price, (int, float)):
+            return "{:,}".format(int(price))
+        return price
+    except:
+        return price
+
 # Function to fetch data from the API
 def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
     base_url = "https://pcc.mlwmlw.org/api/date/tender/"
@@ -12,19 +20,20 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
             date = datetime.datetime.now().strftime("%Y-%m-%d")  # Default to today's date
         else:
             datetime.datetime.strptime(date, "%Y-%m-%d")  # Ensure correct format
+        
         url = f"{base_url}{date}"
-
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
-
+        
+        # Filter data based on inputs
         filtered_data = [
             {
                 "標案名稱": f'<a href="{item.get("url", "#")}" target="_blank">{item.get("name", "N/A")}</a>',
                 "機關名稱": item.get("unit", "N/A"),
                 "類別": item.get("category", "N/A"),
                 "招標方式": item.get("type", "N/A"),
-                "價格": f'{int(item.get("price", 0)):,}' if item.get("price") else "N/A",  # 格式化價格
+                "價格": format_price(item.get("price", "N/A")),
                 "日期": date,
                 "連結": item.get("url", "N/A")
             }
@@ -38,13 +47,12 @@ def fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name):
                 (not name or name in item.get("name", ""))
             )
         ]
+        
         return pd.DataFrame(filtered_data) if filtered_data else pd.DataFrame([{"查無資料": ""}])
-
     except ValueError:
         return pd.DataFrame([{"Error": "日期格式錯誤，請使用 YYYY-MM-DD 格式"}])
     except requests.exceptions.RequestException as e:
         return pd.DataFrame([{"Error": f"無法取得資料: {str(e)}"}])
-
 
 # Gradio Interface
 def create_interface():
@@ -60,46 +68,48 @@ def create_interface():
             )
             type_dropdown = gr.Dropdown(
                 choices=[
-                    "不限", "公開取得報價單或企劃書更正公告", "公開招標公告", "公開招標更正公告", "限制性招標(經公開評選或公開徵求)公告", "限制性招標(經公開評選或公開徵求)更正公告", "無法決標更正公告", "N/A"
+                    "不限", "公開取得報價單或企劃書更正公告", "公開招標公告", "公開招標更正公告", 
+                    "限制性招標(經公開評選或公開徵求)公告", "限制性招標(經公開評選或公開徵求)更正公告", 
+                    "無法決標更正公告", "N/A"
                 ],
                 label="招標方式",
                 value="不限"
             )
-
+            
         with gr.Row():
             unit_name_input = gr.Text(label="機關名稱", placeholder="輸入機關名稱")
             unit_id_input = gr.Text(label="機關代碼", placeholder="輸入機關代碼")
             job_number_input = gr.Text(label="標案案號", placeholder="輸入標案案號")
             name_input = gr.Text(label="標案名稱", placeholder="輸入標案名稱")
-        
+            
         submit_button = gr.Button("查詢")
         download_button = gr.Button("導出 CSV")
-
+        
         # Output for displaying results
         csv_data = gr.State()  # Temporary state to store DataFrame
         output = gr.HTML(label="查詢結果")
- 
-
+        
         # Handle fetch and display
         def handle_query(date, category, type_, unit_name, unit_id, job_number, name):
             df = fetch_tenders(date, category, type_, unit_name, unit_id, job_number, name)
             return df.to_html(escape=False, index=False), df
-
+        
         # Handle CSV export
         def export_csv(df):
             file_path = "/tmp/tender_results.csv"
             df.to_csv(file_path, index=False)
             return file_path
-
+        
         # Button actions
         submit_button.click(
             handle_query,
             inputs=[date_input, category_dropdown, type_dropdown,
-                    unit_name_input, unit_id_input, job_number_input, name_input],
+                   unit_name_input, unit_id_input, job_number_input, name_input],
             outputs=[output, csv_data]
         )
+        
         download_button.click(export_csv, inputs=[csv_data], outputs=gr.File())
-
+    
     demo.launch()
 
 if __name__ == "__main__":
